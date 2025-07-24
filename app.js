@@ -75,8 +75,8 @@ if (document.getElementById('map')) {
     }
   }
 
-  // Load Culverts GeoJSON dari ./data/culverts_score.geojson
-  fetch('./data/culverts_score.geojson')
+  // Load Culverts GeoJSON dari ./data/culverts_score_new.geojson
+  fetch('./data/culverts_score_new.geojson')
     .then(resp => resp.json())
     .then(data => {
       const culvertLayer = L.geoJSON(data, {
@@ -96,7 +96,10 @@ if (document.getElementById('map')) {
           let html = `<strong>ID Culvert: ${props["ID Culvert"] || "-"}</strong><br>
             <strong>Mitra Kerja Penanggungjawab:</strong> ${props["Mitra Kerja Responsible"] || "-"}<br>
             <strong>Tanggal Inspeksi:</strong> ${props["Tanggal Inspeksi"] || "-"}<br>
-            <strong>Tingkat Risiko:</strong> ${props["RiskLevel"] || "-"}<br>`;
+            <strong>Tingkat Risiko:</strong> ${props["RiskLevel"] || "-"}<br>
+            <strong>Foto Inlet:</strong> ${props["FotoInlet"] || "-"}<br>
+            <strong>Foto Outlet:</strong> ${props["FotoOutlet"] || "-"}<br>
+            <strong>Foto Tambahan:</strong> ${props["FotoOther"] || "-"}<br>`;
           layer.bindPopup(html);
         }
       });
