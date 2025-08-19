@@ -10,6 +10,15 @@
   <style>
     #map { height: 94vh; }
     .leaflet-control-layers-expanded { max-height: 170px; overflow-y: auto; }
+    .legend-box {
+      position: absolute; 
+      z-index: 1000; 
+      margin: 18px; 
+      background: white; 
+      padding: 8px; 
+      border-radius: 6px; 
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
   </style>
 </head>
 <body>
@@ -25,12 +34,28 @@
       <!-- Legend -->
   <div id="legend" class="leaflet-bottom leaflet-right bg-white p-2 rounded shadow" style="position: absolute; z-index: 1000; margin: 18px;">
     <strong>Tingkat Risiko Culvert</strong><br>
-    <div><span class="legend-color" style="background:#d73027"></span> Critical</div>
-    <div><span class="legend-color" style="background:#fc8d59"></span> High</div>
-    <div><span class="legend-color" style="background:#fee08b"></span> Medium</div>
-    <div><span class="legend-color" style="background:#1a9850"></span> Low</div>
-    <div><span class="legend-color" style="background:#888888"></span> No Data</div>
+    <div><span class="legend-color" style="background:#ff0000"></span> Critical</div>
+    <div><span class="legend-color" style="background:#ff8e00"></span> High</div>
+    <div><span class="legend-color" style="background:#fff000"></span> Medium</div>
+    <div><span class="legend-color" style="background:#00ff00"></span> Low</div>
+    <div><span class="legend-color" style="background:#cecece"></span> No Data</div>
   </div>
+  <!-- Legend Inspection Time -->
+    <div id="legend-inspection" class="legend-box leaflet-bottom leaflet-right" style="bottom: 170px;">
+      <strong>Waktu Inspeksi</strong><br>
+      <div><span class="legend-color" style="background:#cc4c02"></span> Hari ini</div>
+      <div><span class="legend-color" style="background:#fe9929"></span> 1 - 7 hari</div>
+      <div><span class="legend-color" style="background:#fed98e"></span> 8 - 30 hari</div>
+      <div><span class="legend-color" style="background:#ffffd4"></span> > 30 hari</div>
+      <div><span class="legend-color" style="background:#cecece"></span> No Data</div>
+    </div>
+    <!-- Legend Prioritas -->
+    <div id="legend-prioritas" class="legend-box leaflet-bottom leaflet-right" style="bottom: 340px;">
+      <strong>Prioritas Culvert</strong><br>
+      <div><span class="legend-color" style="background:#7fcdbb"></span> PRIORITAS 1</div>
+      <div><span class="legend-color" style="background:#edf8b1"></span> PRIORITAS 2</div>
+    </div>
+  </div>  
   </div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
