@@ -77,8 +77,8 @@ if (document.getElementById('map')) {
             <strong>Mitra Kerja Penanggungjawab:</strong> ${props["Mitra Kerja Responsible"] || "-"}<br>
             <strong>Tanggal Inspeksi:</strong> ${props["Tanggal Inspeksi"] || "-"}<br>
             <strong>Tingkat Risiko:</strong> ${props["RiskLevel"] || "-"}<br>
-            <strong>Age:</strong> ${props["Age"] || "-"}<br>
-            <strong>Prioritas:</strong> ${props["PRIORITAS"] || "-"}<br>
+            <strong>Inspeksi Terakhir:</strong> ${props["LastCheck"] || "-"}<br>
+            <strong>Prioritas:</strong> ${props["Prioritas"] || "-"}<br>
             <strong>Foto Inlet:</strong> ${props["FotoInlet"] || "-"}<br>
             <strong>Foto Outlet:</strong> ${props["FotoOutlet"] || "-"}<br>
             <strong>Foto Tambahan:</strong> ${props["FotoOther"] || "-"}<br>`;
@@ -89,7 +89,7 @@ if (document.getElementById('map')) {
       // Layer Inspection Time
       const inspectionLayer = L.geoJSON(data, {
         pointToLayer: (feature, latlng) => {
-          let age = feature.properties?.Age || '';
+          let age = feature.properties?.LastCheckGroup|| '';
           return L.circleMarker(latlng, {
             radius: 8,
             fillColor: getAgeColor(age),
@@ -103,7 +103,7 @@ if (document.getElementById('map')) {
           let props = feature.properties;
           layer.bindPopup(`<strong>ID Culvert: ${props["ID Culvert"] || "-"}</strong><br>
             <strong>Tanggal Inspeksi:</strong> ${props["Tanggal Inspeksi"] || "-"}<br>
-            <strong>Age:</strong> ${props["Age"] || "-"}`);
+            <strong>Waktu Inspeksi:</strong> ${props["LastCheck"] || "-"}`);
         }
       });
 
@@ -177,8 +177,17 @@ if (document.getElementById('map')) {
 
     // Tambahkan control thematic
     map.addControl(new ThematicControl());
-
+      // Pastikan legend accordion bisa diklik & collapse berfungsi
+    const legendBox = document.querySelector('.legend-box');
+    if (legendBox) {
+      L.DomEvent.disableClickPropagation(legendBox);
+      L.DomEvent.disableScrollPropagation(legendBox);
+    }
     // Fit extent default
     try { map.fitBounds(culvertLayer.getBounds(), { maxZoom: 16 }); } catch(e){}
   });
+
+
 }
+
+
