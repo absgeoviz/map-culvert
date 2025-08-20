@@ -11,13 +11,25 @@
     #map { height: 94vh; }
     .leaflet-control-layers-expanded { max-height: 170px; overflow-y: auto; }
     .legend-box {
-      position: absolute; 
-      z-index: 1000; 
-      margin: 18px; 
-      background: white; 
-      padding: 8px; 
-      border-radius: 6px; 
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      z-index: 1000;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      width: 240px;
+    }
+    .legend-color {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      margin-right: 6px;
+      border: 1px solid #000;
+    }
+    .accordion-button {
+      padding: 4px 8px;
+      font-size: 0.9rem;
+    }
+    .accordion-body {
+      font-size: 0.85rem;
     }
   </style>
 </head>
@@ -29,34 +41,75 @@
       <button class="btn btn-outline-light ms-auto" id="logoutBtn">Logout</button>
     </div>
   </nav>
+
   <div class="container-fluid">
     <div id="map"></div>
-      <!-- Legend -->
-  <div id="legend" class="leaflet-bottom leaflet-right bg-white p-2 rounded shadow" style="position: absolute; z-index: 1000; margin: 18px;">
-    <strong>Tingkat Risiko Culvert</strong><br>
-    <div><span class="legend-color" style="background:#ff0000"></span> Critical</div>
-    <div><span class="legend-color" style="background:#ff8e00"></span> High</div>
-    <div><span class="legend-color" style="background:#fff000"></span> Medium</div>
-    <div><span class="legend-color" style="background:#00ff00"></span> Low</div>
-    <div><span class="legend-color" style="background:#cecece"></span> No Data</div>
-  </div>
-  <!-- Legend Inspection Time -->
-    <div id="legend-inspection" class="legend-box leaflet-bottom leaflet-right" style="bottom: 170px;">
-      <strong>Waktu Inspeksi</strong><br>
-      <div><span class="legend-color" style="background:#cc4c02"></span> Hari ini</div>
-      <div><span class="legend-color" style="background:#fe9929"></span> 1 - 7 hari</div>
-      <div><span class="legend-color" style="background:#fed98e"></span> 8 - 30 hari</div>
-      <div><span class="legend-color" style="background:#ffffd4"></span> > 30 hari</div>
-      <div><span class="legend-color" style="background:#cecece"></span> No Data</div>
+
+    <!-- Legend Accordion -->
+    <div class="legend-box leaflet-bottom leaflet-right m-2 p-1">
+      <div class="accordion" id="legendAccordion">
+
+        <!-- RiskLevel -->
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="headingRisk">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+              data-bs-target="#collapseRisk" aria-expanded="true" aria-controls="collapseRisk">
+              Tingkat Risiko Culvert
+            </button>
+          </h2>
+          <div id="collapseRisk" class="accordion-collapse collapse show"
+            aria-labelledby="headingRisk" >
+            <div class="accordion-body p-2">
+              <div><span class="legend-color" style="background:#ff0000"></span> Critical</div>
+              <div><span class="legend-color" style="background:#ff8e00"></span> High</div>
+              <div><span class="legend-color" style="background:#fff000"></span> Medium</div>
+              <div><span class="legend-color" style="background:#00ff00"></span> Low</div>
+              <div><span class="legend-color" style="background:#cecece"></span> No Data</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Inspection Time -->
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="headingInspect">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+              data-bs-target="#collapseInspect" aria-expanded="true" aria-controls="collapseInspect">
+              Inspection Time
+            </button>
+          </h2>
+          <div id="collapseInspect" class="accordion-collapse collapse show"
+            aria-labelledby="headingInspect" >
+            <div class="accordion-body p-2">
+              <div><span class="legend-color" style="background:#cc4c02"></span> Hari ini</div>
+              <div><span class="legend-color" style="background:#fe9929"></span> 1 - 7 hari</div>
+              <div><span class="legend-color" style="background:#fed98e"></span> 8 - 30 hari</div>
+              <div><span class="legend-color" style="background:#ffffd4"></span> > 30 hari</div>
+              <div><span class="legend-color" style="background:#cecece"></span> No Data</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Prioritas -->
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="headingPrioritas">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+              data-bs-target="#collapsePrioritas" aria-expanded="true" aria-controls="collapsePrioritas">
+              Prioritas Culvert
+            </button>
+          </h2>
+          <div id="collapsePrioritas" class="accordion-collapse collapse show"
+            aria-labelledby="headingPrioritas" >
+            <div class="accordion-body p-2">
+              <div><span class="legend-color" style="background:#7fcdbb"></span> Prioritas 1</div>
+              <div><span class="legend-color" style="background:#edf8b1"></span> Prioritas 2</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
-    <!-- Legend Prioritas -->
-    <div id="legend-prioritas" class="legend-box leaflet-bottom leaflet-right" style="bottom: 340px;">
-      <strong>Prioritas Culvert</strong><br>
-      <div><span class="legend-color" style="background:#7fcdbb"></span> PRIORITAS 1</div>
-      <div><span class="legend-color" style="background:#edf8b1"></span> PRIORITAS 2</div>
-    </div>
-  </div>  
   </div>
+
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="app.js"></script>
