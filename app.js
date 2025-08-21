@@ -103,6 +103,7 @@ if (document.getElementById('map')) {
           let props = feature.properties;
           layer.bindPopup(`<strong>ID Culvert: ${props["ID Culvert"] || "-"}</strong><br>
             <strong>Tanggal Inspeksi:</strong> ${props["Tanggal Inspeksi"] || "-"}<br>
+            <strong>Tingkat Risiko:</strong> ${props["RiskLevel"] || "-"}<br>
             <strong>Waktu Inspeksi:</strong> ${props["LastCheck"] || "-"}`);
         }
       });
@@ -123,6 +124,8 @@ if (document.getElementById('map')) {
         onEachFeature: (feature, layer) => {
           let props = feature.properties;
           layer.bindPopup(`<strong>ID Culvert: ${props["ID Culvert"] || "-"}</strong><br>
+            <strong>Tingkat Risiko:</strong> ${props["RiskLevel"] || "-"}<br>
+            <strong>Inspeksi Terakhir:</strong> ${props["LastCheck"] || "-"}<br>
             <strong>Prioritas:</strong> ${props["Prioritas"] || "-"}`);
         }
       });
@@ -189,5 +192,4 @@ if (document.getElementById('map')) {
 
 
 }
-
 
