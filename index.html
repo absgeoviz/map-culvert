@@ -1,117 +1,267 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Culverts Inspection Map</title>
+  <title>Web Map App</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <link rel="stylesheet" href="style.css">
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <!-- Custom -->
   <style>
-    #map { height: 94vh; }
-    .leaflet-control-layers-expanded { max-height: 170px; overflow-y: auto; }
-    .legend-box {
-      z-index: 1000;
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-      width: 240px;
+    html, body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden; /* hilangkan scroll bar global */
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+    .navbar {
+      flex: 0 0 auto;
+    }
+    .content-page {
+      flex: 1 1 auto;
+      display: none;
+      height: calc(100vh - 56px); /* full screen minus navbar */
+      overflow: hidden;
+      padding: 0;
+    }
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+    #dashboardPage, #legendPage, #helpPage {
+      padding: 1rem;
+      box-sizing: border-box;
+      #overflow: hidden;
+    }
+    #dashboardPage {
+      height: auto;
+      min-height: 100vh;
+      overflow-y: auto;   /* izinkan scroll vertical */
+      padding: 1rem;
+    }
+    #dashboardPage canvas {
+      max-width: 90% !important;
+      max-height: 80% !important;
+      margin: 0 auto;
+      display: block;
+    }
+    .tab-content {
+      height: calc(100% - 60px); /* sisakan ruang tab + dropdown */
+      overflow: auto; /* scroll internal jika daftar panjang */
+    }
+    #helpPage {
+      overflow: auto; /* biar teks panjang bisa discroll di dalam help saja */
     }
     .legend-color {
+      width: 14px;
+      height: 14px;
       display: inline-block;
-      width: 18px;
-      height: 18px;
       margin-right: 6px;
-      border: 1px solid #000;
+      border-radius: 50%;
+      border: 1px solid #333;
     }
-    .accordion-button {
-      padding: 4px 8px;
-      font-size: 0.9rem;
+    @media (max-width: 900px) {
+      #map, #dashboardPage, #legendPage, #helpPage {
+        height: calc(100vh - 56px); /* sisakan tinggi untuk navbar */
+        overflow-y: auto;
+      }
     }
-    .accordion-body {
-      font-size: 0.85rem;
+    .page {
+      display: none;
+      width: 100%;
+      height: auto;
+      min-height: calc(100vh - 56px); /* sisakan ruang untuk navbar */
+      overflow-y: auto;
     }
+    nav {
+      display: none;
+    }
+
   </style>
 </head>
 <body>
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-2">
+  <!-- Navbar (hidden sebelum login) -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark" style="display:none;">
     <div class="container-fluid">
-      <a class="navbar-brand" href="#">Culvert Inspections Map</a>
-      <button class="btn btn-outline-light ms-auto" id="logoutBtn">Logout</button>
+      <a class="navbar-brand" href="#">Culvert App - <span id="loggedUser"></span></a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="#" id="nav-map">Map</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" id="nav-dashboard">Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" id="nav-legend">Legend</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" id="nav-help">Help</a></li>
+          <li class="nav-item"><a class="nav-link text-danger" href="#" id="nav-logout">Logout</a></li>
+        </ul>
+      </div>
     </div>
   </nav>
 
-  <div class="container-fluid">
-    <div id="map"></div>
-
-    <!-- Legend Accordion -->
-    <div class="legend-box leaflet-bottom leaflet-right m-2 p-1">
-      <div class="accordion" id="legendAccordion">
-
-        <!-- RiskLevel -->
-        <div class="accordion-item">
-          <h2 class="accordion-header" id="headingRisk">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse"
-              data-bs-target="#collapseRisk" aria-expanded="true" aria-controls="collapseRisk">
-              Tingkat Risiko Culvert
-            </button>
-          </h2>
-          <div id="collapseRisk" class="accordion-collapse collapse show"
-            aria-labelledby="headingRisk" >
-            <div class="accordion-body p-2">
-              <div><span class="legend-color" style="background:#ff0000"></span> Critical</div>
-              <div><span class="legend-color" style="background:#ff8e00"></span> High</div>
-              <div><span class="legend-color" style="background:#fff000"></span> Medium</div>
-              <div><span class="legend-color" style="background:#00ff00"></span> Low</div>
-              <div><span class="legend-color" style="background:#cecece"></span> No Data</div>
-            </div>
-          </div>
+  <!-- Login Page -->
+  <div id="loginPage" class="page p-3" style="display:block;">
+    <div class="container mt-5" style="max-width: 400px;">
+      <h3 class="mb-3 text-center">Login</h3>
+      <div class="card shadow p-4">
+        <div class="mb-3">
+          <label for="username" class="form-label">Username</label>
+          <input type="text" id="username" class="form-control">
         </div>
-
-        <!-- Inspection Time -->
-        <div class="accordion-item">
-          <h2 class="accordion-header" id="headingInspect">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse"
-              data-bs-target="#collapseInspect" aria-expanded="true" aria-controls="collapseInspect">
-              Inspeksi Terakhir
-            </button>
-          </h2>
-          <div id="collapseInspect" class="accordion-collapse collapse show"
-            aria-labelledby="headingInspect" >
-            <div class="accordion-body p-2">
-              <div><span class="legend-color" style="background:#cc4c02"></span> Hari ini</div>
-              <div><span class="legend-color" style="background:#fe9929"></span> 1 - 7 hari</div>
-              <div><span class="legend-color" style="background:#fed98e"></span> 8 - 30 hari</div>
-              <div><span class="legend-color" style="background:#ffffd4"></span> > 30 hari</div>
-              <div><span class="legend-color" style="background:#cecece"></span> No Data</div>
-            </div>
-          </div>
+        <div class="mb-3">
+          <label for="password" class="form-label">Password</label>
+          <input type="password" id="password" class="form-control">
         </div>
-
-        <!-- Prioritas -->
-        <div class="accordion-item">
-          <h2 class="accordion-header" id="headingPrioritas">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse"
-              data-bs-target="#collapsePrioritas" aria-expanded="true" aria-controls="collapsePrioritas">
-              Prioritas Culvert
-            </button>
-          </h2>
-          <div id="collapsePrioritas" class="accordion-collapse collapse show"
-            aria-labelledby="headingPrioritas" >
-            <div class="accordion-body p-2">
-              <div><span class="legend-color" style="background:#7fcdbb"></span> Prioritas 1</div>
-              <div><span class="legend-color" style="background:#edf8b1"></span> Prioritas 2</div>
-            </div>
-          </div>
+        <button id="loginBtn" class="btn btn-primary w-100">Login</button>
+        <div id="loginError" class="text-danger mt-2" style="display:none;">
+          Username atau password salah!
         </div>
-
       </div>
     </div>
   </div>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- MAP PAGE -->
+  <div id="mapPage" class="content-page" style="display:none;">
+    <div id="map"></div>
+  </div>
+
+  <!-- DASHBOARD PAGE -->
+  <div id="dashboardPage" class="content-page" style="display:none;">
+    <h3>Dashboard</h3>
+
+    <!-- Form Konfigurasi -->
+    <form id="chartConfigForm" class="row g-3 mb-3">
+      <div class="col-md-4">
+        <label for="mitraSelect" class="form-label">Pilih Mitra</label>
+        <select id="mitraSelect" class="form-select">
+          <option value="BUMA">BUMA</option>
+          <option value="SIS">SIS</option>
+          <option value="PPA">PPA</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label for="categorySelect" class="form-label">Kategori Data</label>
+        <select id="categorySelect" class="form-select">
+          <option value="RiskLevel">Tingkat Risiko</option>
+          <option value="LastCheckGroup">Waktu Inspeksi</option>
+          <option value="PRIORITAS">Prioritas</option>
+        </select>
+      </div>
+      <div class="col-md-4 d-flex align-items-end">
+        <button type="button" id="drawChartBtn" class="btn btn-primary w-100">Draw Chart</button>
+      </div>
+    </form>
+
+    <!-- Chart -->
+    <div style="height:300px; width:100%;">
+      <canvas id="dashboardChart"></canvas>
+    </div>
+
+
+    <!-- Data Table -->
+    <div class="mt-4">
+      <h5>Culvert</h5>
+      <div class="table-responsive" style="max-height:400px; overflow-y:auto;">
+        <table class="table table-bordered table-sm">
+          <thead>
+            <tr>
+              <th>ID Culvert</th>
+              <th>Mitra</th>
+              <th>Tanggal Inspeksi</th>
+              <th>Risk Level</th>
+              <th>Last Check</th>
+              <th>Prioritas</th>
+              <th>Jumlah Line</th>
+            </tr>
+          </thead>
+          <tbody id="culvertTableBody">
+            <tr><td colspan="7" class="text-center">Klik bar chart untuk melihat daftar culvert</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- LEGEND PAGE -->
+  <div id="legendPage" class="content-page" style="display:none;">
+    <h3>Legend</h3>
+    <div class="accordion" id="legendAccordion">
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#legendRisk" aria-expanded="true">Legend Risiko</button>
+        </h2>
+        <div id="legendRisk" class="accordion-collapse collapse show">
+          <div class="accordion-body">
+            <i style="background:#ff0000;width:12px;height:12px;display:inline-block"></i> Critical<br>
+            <i style="background:#ff8e00;width:12px;height:12px;display:inline-block"></i> High<br>
+            <i style="background:#fff000;width:12px;height:12px;display:inline-block"></i> Medium<br>
+            <i style="background:#00ff00;width:12px;height:12px;display:inline-block"></i> Low<br>
+            <i style="background:#cecece;width:12px;height:12px;display:inline-block"></i> No Data
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#legendAge">Legend Waktu Inspeksi</button>
+        </h2>
+        <div id="legendAge" class="accordion-collapse collapse">
+          <div class="accordion-body">
+            <i style="background:#cc4c02;width:12px;height:12px;display:inline-block"></i> Hari ini<br>
+            <i style="background:#fe9929;width:12px;height:12px;display:inline-block"></i> 7 hari<br>
+            <i style="background:#fed98e;width:12px;height:12px;display:inline-block"></i> 30 hari<br>
+            <i style="background:#ffffd4;width:12px;height:12px;display:inline-block"></i> > 30 hari<br>
+            <i style="background:#cecece;width:12px;height:12px;display:inline-block"></i> No Data
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#legendPrior">Legend Prioritas</button>
+        </h2>
+        <div id="legendPrior" class="accordion-collapse collapse">
+          <div class="accordion-body">
+            <i style="background:#7fcdbb;width:12px;height:12px;display:inline-block"></i> Prioritas 1<br>
+            <i style="background:#edf8b1;width:12px;height:12px;display:inline-block"></i> Prioritas 2
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HELP PAGE -->
+  <div id="helpPage" class="content-page" style="display:none;">
+    <h3>Panduan Aplikasi</h3>
+    <p>Gunakan menu navigasi untuk berpindah halaman:</p>
+    <ul>
+      <li><strong>Map</strong>: menampilkan peta culvert dengan tema risiko, waktu inspeksi, dan prioritas.</li>
+      <li><strong>Dashboard</strong>: menampilkan grafik jumlah culvert berdasarkan mitra dan kategori.</li>
+      <li><strong>Legend</strong>: menampilkan keterangan warna simbol.</li>
+      <li><strong>Help</strong>: halaman panduan ini.</li>
+    </ul>
+  </div>
+
+  <!-- Bootstrap JS, Leaflet, Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="app.js"></script>
+  <script>
+    function showPage(id, el) {
+      document.querySelectorAll('.content-page').forEach(div => div.style.display = 'none');
+      document.getElementById(id).style.display = 'block';
+      // update nav-link active
+      document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+      if (el) el.classList.add('active');
+    }
+  </script>
 </body>
 </html>
